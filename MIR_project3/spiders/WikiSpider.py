@@ -17,16 +17,19 @@ class WikiSpider(scrapy.Spider):
 
         counter = 0
         tags = soup.select('div#mw-content-text')[0].find_all('a')
+        while len(tags) != 0:
+            next_page = tags.pop().get('href')
+            while '#' in next_page or ':' in next_page or next_page in response.url or 'wikisource' in next_page:
+                if tags:
+                    next_page = tags.pop().get('href')
 
-        next_page = tags.pop(0).get('href')
-        while '#' in next_page or ':' in next_page or next_page in response.url or 'wikisource' in next_page :
-            if tags:
-                next_page = tags.pop(0).get('href')
+            if next_page:
+                if counter < 10:
+                    counter += 1
+                    yield scrapy.Request(
+                        response.urljoin(next_page),
+                        callback=self.parse
+                    )
+                else:
+                    break
 
-        if next_page:
-            if counter < 20:
-                counter += 1
-                yield scrapy.Request(
-                    response.urljoin(next_page),
-                    callback=self.parse
-                )
