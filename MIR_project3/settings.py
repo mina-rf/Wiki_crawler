@@ -14,7 +14,7 @@ BOT_NAME = 'MIR_project3'
 SPIDER_MODULES = ['MIR_project3.spiders']
 NEWSPIDER_MODULE = 'MIR_project3.spiders'
 
-
+CLOSESPIDER_PAGECOUNT = 3
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'MIR_project3 (+http://www.yourdomain.com)'
 

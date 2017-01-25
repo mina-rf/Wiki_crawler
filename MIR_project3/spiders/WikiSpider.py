@@ -7,12 +7,20 @@ from bs4 import BeautifulSoup
 class WikiSpider(scrapy.Spider):
     name = 'wiki_spider'
     start_urls = ['https://fa.wikipedia.org/wiki/%D8%B3%D8%B9%D8%AF%DB%8C']
+    allowed_domains = ['fa.wikipedia.org']
 
     def parse(self, response):
         soup = BeautifulSoup(response.body, 'html.parser')
 
+        wiki_item = WikiItem()
+        wiki_item['title'] = soup.select('h1.firstHeading')[0].get_text()
+        wiki_item['preface'] = soup.select_one('div#mw-content-text').find_all('p')[2].get_text()
+        # for i, p in enumerate(soup.select_one('div#mw-content-text').find_all('p')):
+        #     print(i, ':', p)
+        wiki_item['page'] = response.url
+        wiki_item['links'] = []
         yield {
-            'my_title': soup.select('h1.firstHeading')[0].get_text()
+            'wiki_item': wiki_item
         }
 
         counter = 0
@@ -33,3 +41,10 @@ class WikiSpider(scrapy.Spider):
                 else:
                     break
 
+
+class WikiItem(scrapy.Item):
+    title = scrapy.Field()
+    preface = scrapy.Field()
+    body = scrapy.Field()
+    page = scrapy.Field()
+    links = scrapy.Field()
