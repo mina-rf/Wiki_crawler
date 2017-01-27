@@ -1,7 +1,11 @@
 import re
+import urllib
 
 import scrapy
+
 from bs4 import BeautifulSoup
+
+from MIR_project3.items import WikiItem
 
 
 class WikiSpider(scrapy.Spider):
@@ -11,40 +15,27 @@ class WikiSpider(scrapy.Spider):
 
     def parse(self, response):
         soup = BeautifulSoup(response.body, 'html.parser')
+        main_content = soup.select_one('div#mw-content-text')
 
         wiki_item = WikiItem()
         wiki_item['title'] = soup.select('h1.firstHeading')[0].get_text()
-        wiki_item['preface'] = soup.select_one('div#mw-content-text').find_all('p')[2].get_text()
-        # for i, p in enumerate(soup.select_one('div#mw-content-text').find_all('p')):
-        #     print(i, ':', p)
-        wiki_item['page'] = response.url
+        wiki_item['preface'] = main_content.find_all('p', recursive=False)[0].get_text()
+        wiki_item['page'] = urllib.parse.unquote(response.url)
+        [s.extract() for s in main_content(['style', 'script', '[document]', 'head', 'title'])]
+        wiki_item['body'] = main_content.get_text()
         wiki_item['links'] = []
-        yield {
-            'wiki_item': wiki_item
-        }
 
-        counter = 0
-        tags = soup.select('div#mw-content-text')[0].find_all('a')
-        while len(tags) != 0:
-            next_page = tags.pop().get('href')
-            while '#' in next_page or ':' in next_page or next_page in response.url or 'wikisource' in next_page:
-                if tags:
-                    next_page = tags.pop().get('href')
+        anchors = [urllib.parse.unquote(a['href']) for a in main_content.find_all('a')]
+        refs = [response.urljoin(a) for a in anchors]
+        wiki_item['links'].extend(refs)
+        yield wiki_item
 
-            if next_page:
-                if counter < 10:
-                    counter += 1
-                    yield scrapy.Request(
-                        response.urljoin(next_page),
-                        callback=self.parse
-                    )
-                else:
-                    break
-
-
-class WikiItem(scrapy.Item):
-    title = scrapy.Field()
-    preface = scrapy.Field()
-    body = scrapy.Field()
-    page = scrapy.Field()
-    links = scrapy.Field()
+        valid_refs = [a for a in anchors if not bool(re.search('\d|#|:|wikisource', a))][:10]
+        # print('valid', valid_refs)
+        # print('anch', anchors[:10])
+        while valid_refs:
+            next_page = valid_refs.pop()
+            yield scrapy.Request(
+                response.urljoin(next_page),
+                callback=self.parse
+            )

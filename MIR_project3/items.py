@@ -8,7 +8,9 @@
 import scrapy
 
 
-class MirProject3Item(scrapy.Item):
-    # define the fields for your item here like:
-    # name = scrapy.Field()
-    pass
+class WikiItem(scrapy.Item):
+    title = scrapy.Field()
+    preface = scrapy.Field()
+    body = scrapy.Field()
+    page = scrapy.Field()
+    links = scrapy.Field()
