@@ -7,8 +7,21 @@
 import json
 import os
 
+from scrapy.exceptions import DropItem
 
-class MirProject3Pipeline(object):
+
+class DupContentPipeline(object):
+    titles = set()
+
+    def process_item(self, item, spider):
+        if item['title'] in self.titles:
+            raise DropItem('Duplicated Content for %s' % item['page'])
+        else:
+            self.titles.add(item['title'])
+            return item
+
+
+class JsonWriterPipeline(object):
     def process_item(self, item, spider):
         file_name = item.get('title') + '.json'
         BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
