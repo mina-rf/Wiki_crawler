@@ -2,7 +2,6 @@ import re
 import urllib
 
 import scrapy
-
 from bs4 import BeautifulSoup
 
 from MIR_project3.items import WikiItem
@@ -12,6 +11,12 @@ class WikiSpider(scrapy.Spider):
     name = 'wiki_spider'
     start_urls = ['https://fa.wikipedia.org/wiki/%D8%B3%D8%B9%D8%AF%DB%8C']
     allowed_domains = ['fa.wikipedia.org']
+    count = 0
+    COUNT_MAX = 100
+
+    def __init__(self):
+        # n = int(input())
+        print('a')
 
     def parse(self, response):
         soup = BeautifulSoup(response.body, 'html.parser')
@@ -28,6 +33,8 @@ class WikiSpider(scrapy.Spider):
         anchors = [urllib.parse.unquote(a['href']) for a in main_content.find_all('a')]
         refs = [response.urljoin(a) for a in anchors]
         wiki_item['links'].extend(refs)
+        self.count += 1
+
         yield wiki_item
 
         valid_refs = [a for a in anchors if not bool(re.search('\d|#|:|wikisource', a))][:10]
@@ -35,7 +42,8 @@ class WikiSpider(scrapy.Spider):
         # print('anch', anchors[:10])
         while valid_refs:
             next_page = valid_refs.pop()
-            yield scrapy.Request(
-                response.urljoin(next_page),
-                callback=self.parse
-            )
+            if self.count < self.COUNT_MAX:
+                yield scrapy.Request(
+                    response.urljoin(next_page),
+                    callback=self.parse
+                )
