@@ -8,13 +8,16 @@
 #     http://doc.scrapy.org/en/latest/topics/settings.html
 #     http://scrapy.readthedocs.org/en/latest/topics/downloader-middleware.html
 #     http://scrapy.readthedocs.org/en/latest/topics/spider-middleware.html
-
+LOG_ENABLED = False
+# LOG_LEVEL = 'INFO'
 BOT_NAME = 'MIR_project3'
 
 SPIDER_MODULES = ['MIR_project3.spiders']
 NEWSPIDER_MODULE = 'MIR_project3.spiders'
 
-CLOSESPIDER_PAGECOUNT = 100
+# CLOSESPIDER_PAGECOUNT = 10
+# CLOSESPIDER_ITEMCOUNT = 10
+
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 # USER_AGENT = 'MIR_project3 (+http://www.yourdomain.com)'
 
@@ -66,7 +69,8 @@ ROBOTSTXT_OBEY = True
 # See http://scrapy.readthedocs.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
     'MIR_project3.pipelines.DupContentPipeline': 300,
-    'MIR_project3.pipelines.JsonWriterPipeline': 300,
+    'MIR_project3.pipelines.JsonWriterPipeline': 400,
+    # 'MIR_project3.pipelines.ItemCounter': 300,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)

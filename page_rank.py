@@ -1,6 +1,6 @@
 import numpy as np
-from scipy import sparse
 from elasticsearch import Elasticsearch
+from scipy import sparse
 from sklearn.preprocessing import normalize
 
 
@@ -60,8 +60,10 @@ def page_rank(eigen_vector):
 # print(add_teleporting(sa , 0.5))
 # print(ans)
 # print(page_rank(ans))
+'''
 adj = make_adjacency_matrix('wiki-index')['matrix']
 m = add_teleporting(adj,0.3)
 m = eigen_vector_power_method(m , 3 , np.ones((m.shape[0],1)))
 m= page_rank(m)
 print(m)
+'''

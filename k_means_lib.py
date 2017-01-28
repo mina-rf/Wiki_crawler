@@ -64,5 +64,6 @@ def get_term_vector(es, doc_id):
     return term_vector
 
 
-dic, term_doc_matrix = init()
-find_best_cluster(term_doc_matrix)
+if __name__ == '__main__':
+    dic, term_doc_matrix = init()
+    find_best_cluster(term_doc_matrix)
