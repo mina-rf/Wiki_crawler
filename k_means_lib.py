@@ -2,6 +2,7 @@ import numpy as np
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
 from sklearn.cluster import KMeans
+from cluster_labeling import make_docs_clusters , choose_label, label_all
 
 
 def init():
@@ -31,7 +32,7 @@ def init():
             ind = dictionary[t]
             term_doc_matrix[d_map[doc_id]][ind] = f
 
-    return dictionary, term_doc_matrix
+    return dictionary, term_doc_matrix , doc_ids
 
 
 def find_best_cluster(term_doc_matrix):
@@ -63,7 +64,25 @@ def get_term_vector(es, doc_id):
     # term_vector_normalized = {term: freq / math.sqrt(doc_len) for term, freq in term_vector.items()}
     return term_vector
 
+def update_index_clusters(doc_id , clusters):
+    es = Elasticsearch()
+    for _id in doc_id:
+        es.update(index='wiki-index', doc_type='doc', id=_id, body={'doc': {'cluster_id': int(clusters[doc_id.index(_id)])}})
 
 if __name__ == '__main__':
     dic, term_doc_matrix = init()
     find_best_cluster(term_doc_matrix)
+# dic, term_doc_matrix  , doc_id = init()
+# cluster = find_best_cluster(term_doc_matrix)
+# docs = make_docs_clusters(term_doc_matrix , cluster.labels_)
+# update_index_clusters(doc_id , cluster.labels_)
+# print(label_all(3 , dic,docs))
+# labels = choose_label(1,dic,docs)
+# print(choose_label(1,dic,docs))
+# print(choose_label(2,dic,docs))
+# print(choose_label(3,dic,docs))
+
+
+
+
+
