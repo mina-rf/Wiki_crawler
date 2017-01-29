@@ -10,20 +10,31 @@ def make_adjacency_matrix(index):
     es = Elasticsearch()
     s = Search(using=es, index=index, doc_type='doc')
     all_docs = s.scan()
-    url_id = {}
-    matrix = sparse.csr_matrix(np.zeros((0, 0)))
     all_docs = [hit for hit in all_docs]
     print('making adjacency matrix:')
+    url_id, matrix = build_matrix(all_docs)
+
+    normalize(matrix, norm='l1', axis=1, copy=False)
+    return matrix, url_id
+
+
+def build_matrix(all_docs, meta=True):
+    url_id = {}
+    matrix = sparse.csr_matrix(np.zeros((0, 0)))
     for i in trange(len(all_docs)):
         hit = all_docs[i]
         page = hit['page']
         if page not in url_id:
-            url_id[page] = {'id': len(url_id), 'doc_id': hit.meta.id}
+            d = 0
+            if meta:
+                d = hit.meta.id
+            url_id[page] = {'id': len(url_id), 'doc_id': d}
             matrix = sparse.csr_matrix((matrix.data, matrix.indices, matrix.indptr),
                                        shape=(len(url_id) - 1, len(url_id)))
             matrix = sparse.vstack([matrix, sparse.csr_matrix((1, len(url_id)))])
         else:
-            url_id[page]['doc_id'] = hit.meta.id
+            if meta:
+                url_id[page]['doc_id'] = hit.meta.id
         for link in hit['links']:
             if link not in url_id:
                 url_id[link] = {'id': len(url_id), 'doc_id': 0}
@@ -31,9 +42,7 @@ def make_adjacency_matrix(index):
                                            shape=(len(url_id) - 1, len(url_id)))
                 matrix = sparse.vstack([matrix, sparse.csr_matrix((1, len(url_id)))])
             matrix[url_id[page]['id'], url_id[link]['id']] = 1
-
-    normalize(matrix, norm='l1', axis=1, copy=False)
-    return matrix, url_id
+    return url_id, matrix
 
 
 def add_teleporting(p, alpha):

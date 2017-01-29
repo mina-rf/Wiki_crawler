@@ -1,12 +1,14 @@
+import matplotlib.pyplot as plt
+import networkx as nx
 from elasticsearch import Elasticsearch
 from scrapy.crawler import CrawlerProcess
 from scrapy.utils.project import get_project_settings
 
 from MIR_project3.spiders import WikiSpider
 from cluster_labeling import print_clusters
-from elastic_indexing import make_index, delete_index
+from elastic_indexing import make_index, delete_index, get_docs_list
 from k_means_lib import cluster
-from page_rank import compute_and_update_pr
+from page_rank import compute_and_update_pr, build_matrix
 from search import search
 
 cluster_label = {0: 'همه'}
@@ -33,6 +35,7 @@ def init():
             part_func[part]()
 
 
+
 def part1():
     print('لطفا start_urlهای مورد نظر خود را وارد نمایید و برای اتمام enter بزنید')
     start_urls = []
@@ -57,6 +60,17 @@ def part1():
     # d.addBoth(lambda _: reactor.stop())
     # reactor.run()  # the script will block here until the crawling is finished
     # reactor.stop()
+    print('آیا مایل هستید ماتریس مجاورت صفحات را ببینید؟ ۰ نه ۱ بله')
+    if int(input()):
+        draw_matrix()
+
+
+def draw_matrix():
+    docs = get_docs_list('files')
+    _, matrix = build_matrix(docs, meta=False)
+    G = nx.from_scipy_sparse_matrix(matrix)
+    nx.draw_networkx(G, pos=nx.circular_layout(G))
+    plt.show()
 
 
 def part2():

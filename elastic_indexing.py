@@ -31,6 +31,19 @@ def make_index(index_dir):
     es.index(index=INDEX_NAME, doc_type='cluster', body={'cluster_id': 0, 'label': 'همه'})
 
 
+def get_docs_list(index_dir):
+    out = []
+    index_dir = os.path.join(BASE_DIR, index_dir)
+    all_files = [join(index_dir, f) for f in listdir(index_dir) if isfile(join(index_dir, f)) and not f.startswith('.')]
+    bar = tqdm(total=len(all_files))
+    for file in all_files:
+        bar.update(1)
+        with open(file) as data_file:
+            body = json.load(data_file)
+            out.append(body)
+    return out
+
+
 def delete_index(index):
     es = Elasticsearch()
     es.indices.delete(index=index, ignore=[400, 404])
