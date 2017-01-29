@@ -69,7 +69,7 @@ def draw_matrix():
     docs = get_docs_list('files')
     _, matrix = build_matrix(docs, meta=False)
     G = nx.from_scipy_sparse_matrix(matrix)
-    nx.draw_networkx(G, pos=nx.circular_layout(G))
+    nx.draw_networkx(G)
     plt.show()
 
 
