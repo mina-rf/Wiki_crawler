@@ -1,5 +1,6 @@
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search, Q
+import operator
 
 
 def search(index, title_w, preface_w, body_w, cluster_id, page_rank, title, preface, body):
@@ -29,10 +30,13 @@ def search(index, title_w, preface_w, body_w, cluster_id, page_rank, title, pref
 
         )
 
-    response = s.scan()
+    response = s.execute()
 
     if page_rank:
-        response = sorted(response, key=lambda x: x['page_rank'], reverse=True)
+        pr_res = [hit for hit in response]
+        max_score = max([hit.meta.score for hit in response])
+        pr_scores = [hit.meta.score*0.8 + 0.2*hit.page_rank*max_score for hit in response]
+        response = [x for (y,x) in sorted(zip(pr_scores,pr_res) , reverse=True)]
 
     for hit in response:
         print('id : ', hit.meta.id, ', title :', hit.title)
