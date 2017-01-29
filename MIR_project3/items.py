@@ -14,6 +14,8 @@ class WikiItem(scrapy.Item):
     body = scrapy.Field()
     page = scrapy.Field()
     links = scrapy.Field()
+    page_rank = scrapy.Field()
+    cluster_id = scrapy.Field()
 
     def __str__(self):
         return ''

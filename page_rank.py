@@ -1,9 +1,9 @@
 import numpy as np
 from elasticsearch import Elasticsearch
+from elasticsearch_dsl import Search
 from scipy import sparse
 from sklearn.preprocessing import normalize
-from elasticsearch_dsl import Search
-from tqdm import trange , tqdm
+from tqdm import trange, tqdm
 
 
 def make_adjacency_matrix(index):
@@ -18,7 +18,7 @@ def make_adjacency_matrix(index):
         hit = all_docs[i]
         page = hit['page']
         if page not in url_id:
-            url_id[page] = {'id' : len(url_id) , 'doc_id' : hit.meta.id}
+            url_id[page] = {'id': len(url_id), 'doc_id': hit.meta.id}
             matrix = sparse.csr_matrix((matrix.data, matrix.indices, matrix.indptr),
                                        shape=(len(url_id) - 1, len(url_id)))
             matrix = sparse.vstack([matrix, sparse.csr_matrix((1, len(url_id)))])
@@ -26,7 +26,7 @@ def make_adjacency_matrix(index):
             url_id[page]['doc_id'] = hit.meta.id
         for link in hit['links']:
             if link not in url_id:
-                url_id[link] = {'id' : len(url_id) , 'doc_id' : 0}
+                url_id[link] = {'id': len(url_id), 'doc_id': 0}
                 matrix = sparse.csr_matrix((matrix.data, matrix.indices, matrix.indptr),
                                            shape=(len(url_id) - 1, len(url_id)))
                 matrix = sparse.vstack([matrix, sparse.csr_matrix((1, len(url_id)))])
@@ -61,19 +61,17 @@ def add_page_rank_to_index(pr_matrix, url_id, index):
     pbar = tqdm(total=len(url_id))
     for url, id in url_id.items():
         pbar.update(1)
-        if id['doc_id']!=0 :
+        if id['doc_id'] != 0:
             es.update(index=index, doc_type='doc', id=id['doc_id'], body={'doc': {'page_rank': pr_matrix[id['id'], 0]}})
     pbar.close()
 
 
-def compute_and_update_pr(alpha , index , itr):
-    matrix , url_id = make_adjacency_matrix(index)
-    matrix = add_teleporting(matrix , alpha)
-    pr =eigen_vector_power_method(matrix,itr, np.ones((matrix.shape[0],1)))
+def compute_and_update_pr(alpha, index, itr):
+    matrix, url_id = make_adjacency_matrix(index)
+    matrix = add_teleporting(matrix, alpha)
+    pr = eigen_vector_power_method(matrix, itr, np.ones((matrix.shape[0], 1)))
     pr = page_rank(pr)
-    add_page_rank_to_index(pr,url_id,index)
-
-
+    add_page_rank_to_index(pr, url_id, index)
 
 # res = make_adjacency_matrix('wiki-index')
 # url_id = res['url_id']
@@ -84,4 +82,3 @@ def compute_and_update_pr(alpha , index , itr):
 # m = page_rank(m)
 #
 # add_page_rank_to_index(m, res['url_id'], 'wiki-index')
-

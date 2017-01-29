@@ -1,20 +1,16 @@
+from elasticsearch import Elasticsearch
 from scrapy.crawler import CrawlerProcess
 from scrapy.utils.project import get_project_settings
-from elasticsearch import Elasticsearch
-from elasticsearch_dsl import Search, Q
 
 from MIR_project3.spiders import WikiSpider
-from search import search
-from page_rank import compute_and_update_pr
 from cluster_labeling import print_clusters
+from elastic_indexing import make_index, delete_index
+from k_means_lib import cluster
+from page_rank import compute_and_update_pr
+from search import search
 
+cluster_label = {0: 'همه'}
 
-# logging.getLogger('scrapy').propagate = False
-
-
-# logging.getLogger('scrapy').setLevel('INFO')
-
-cluster_label = { 0 : 'همه'}
 
 def init():
     parts = ['بخش اول',
@@ -54,20 +50,42 @@ def part1():
     process = CrawlerProcess(setting)
     process.crawl(WikiSpider.WikiSpider, start_urls=start_urls, out_degree=out_deg, COUNT_MAX=n)
     process.start()
+    # TODO: check the twisted.internet.error.ReactorNotRestartable
+    # runner = CrawlerRunner()
+    #
+    # d = runner.crawl(WikiSpider.WikiSpider, start_urls=start_urls, out_degree=out_deg, COUNT_MAX=n)
+    # d.addBoth(lambda _: reactor.stop())
+    # reactor.run()  # the script will block here until the crawling is finished
+    # reactor.stop()
 
 
 def part2():
-    pass
+    options = ['ساخت نمایه', 'پاک کردن نمایه', 'بازگشت']
+    while True:
+        print_list(options)
+        option = int(input())
+        if option == 1:
+            print('لطفا نام پوشه‌ای که می‌خواهید روی آن نمایه را بسازید وارد نمایید')
+            directory = input()
+            make_index(directory)
+        elif option == 2:
+            print('لطفا نام نمایه‌ای که می‌خواهید پاک کنید را وارد نمایید')
+            index_name = input()
+            delete_index(index_name)
+        else:
+            break
 
 
 def part3():
-    pass
+    print('لطفا حداکثر تعداد خوشه‌ها را وارد نمایید')
+    L = int(input())
+    cluster(L)
 
 
 def part4():
     print('لطفا آلفا مورد نظر برای محاسبه معیار page rank  را وارد کنید.')
     alpha = float(input())
-    compute_and_update_pr(alpha,'wiki-index',5)
+    compute_and_update_pr(alpha, 'wiki-index', 5)
     pass
 
 
@@ -78,23 +96,24 @@ def part5():
     preface_w = int(input())
     print('لطفا وزن مربوط به متن را وارد کنید.')
     body_w = int(input())
-    print('لطفا در صورت تمایل به جستجو در بین خوشه مشخص شماره خوشه را وارد نمایید و در غیر این صورت عدد -۱ را وارد نمایید')
+    print(
+        'لطفا در صورت تمایل به جستجو در بین خوشه مشخص شماره خوشه را وارد نمایید و در غیر این صورت عدد -۱ را وارد نمایید')
     # for i , label in cluster_label.items():
     #     print( i , ':' , label)
     print_clusters()
     cluster_id = int(input())
     print(' آیا تمایل به استفاده از معیار page rank دارید؟ ۱- بله ۲-خیر')
-    page_rank = True if int(input())==1 else False
+    page_rank = True if int(input()) == 1 else False
     print('لطفا کلیدواژه مربوط به عنوان را وارد کنید.')
     title = input()
     print('لطفا کلیدواژه مربوط به خلاصه را وارد کنید.')
     preface = input()
     print('لطفا کلیدواژه مربوط به متن را وارد کنید.')
     body = input()
-    search('wiki-index',title_w,preface_w,body_w,cluster_id,page_rank,title,preface,body)
+    search('wiki-index', title_w, preface_w, body_w, cluster_id, page_rank, title, preface, body)
     print('در صورت تمایل به دیدن محتوای صفحه آیدی آن را وارد کنید')
     doc_id = input()
-    while doc_id!='':
+    while doc_id != '':
         es = Elasticsearch()
         res = es.get(index="wiki-index", doc_type='doc', id=doc_id)['_source']
         print(res['page'])
