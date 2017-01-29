@@ -2,7 +2,7 @@ import numpy as np
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
 from sklearn.cluster import KMeans
-from cluster_labeling import make_docs_clusters , choose_label, label_all
+from cluster_labeling import make_docs_clusters , choose_label, label_all , update_label_index
 
 
 def init():
@@ -76,7 +76,9 @@ if __name__ == '__main__':
 # cluster = find_best_cluster(term_doc_matrix)
 # docs = make_docs_clusters(term_doc_matrix , cluster.labels_)
 # update_index_clusters(doc_id , cluster.labels_)
-# print(label_all(3 , dic,docs))
+# ans = label_all(3 , dic,docs)
+# update_label_index(ans)
+
 # labels = choose_label(1,dic,docs)
 # print(choose_label(1,dic,docs))
 # print(choose_label(2,dic,docs))

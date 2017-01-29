@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import json
 import os
 from os import listdir
@@ -21,6 +22,7 @@ def make_index(dir):
         with open(file) as data_file:
             body = json.load(data_file)
             es.index(index="wiki-index", doc_type='doc', body=body)
+    es.index(index='wiki-index' , doc_type='cluster' , body={'cluster_id': 0 , 'label' : 'همه'})
     print('done')
 
 

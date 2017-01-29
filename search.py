@@ -35,7 +35,7 @@ def search(index, title_w, preface_w, body_w, cluster_id, page_rank, title, pref
         response = sorted(response, key=lambda x: x['page_rank'], reverse=True)
 
     for hit in response:
-        print('id : ' , hit.meta.id, 'title :' , hit.title)
+        print('id : ' , hit.meta.id, ', title :' , hit.title)
 
 
 # search('wiki-index', 3, 2, 1, 2, False, "سعدی", 'شیراز', 'ا')
