@@ -1,7 +1,10 @@
 from scrapy.crawler import CrawlerProcess
 from scrapy.utils.project import get_project_settings
+from elasticsearch import Elasticsearch
+from elasticsearch_dsl import Search, Q
 
-from spiders import WikiSpider
+from MIR_project3.spiders import WikiSpider
+from search import search
 
 
 # logging.getLogger('scrapy').propagate = False
@@ -9,6 +12,7 @@ from spiders import WikiSpider
 
 # logging.getLogger('scrapy').setLevel('INFO')
 
+cluster_label = { 0 : 'همه'}
 
 def init():
     parts = ['بخش اول',
@@ -59,10 +63,42 @@ def part3():
 
 
 def part4():
+    print('لطفا آلفا مورد نظر برای محاسبه معیار page rank  را وارد کنید.')
+    alpha = float(input())
+
     pass
 
 
 def part5():
+    print('لطفا وزن مربوط به عنوان را وارد کنید')
+    title_w = int(input())
+    print('لطفا وزن مربوط به خلاصه را وارد کنید.')
+    preface_w = int(input())
+    print('لطفا وزن مربوط به متن را وارد کنید.')
+    body_w = int(input())
+    print('لطفا در صورت تمایل به جستجو در بین خوشه مشخص شماره خوشه را وارد نمایید و در غیر این صورت عدد -۱ را وارد نمایید')
+    for i , label in cluster_label.items():
+        print( i , ':' , label)
+    cluster_id = int(input())
+    print(' آیا تمایل به استفاده از معیار page rank دارید؟ ۱- بله ۲-خیر')
+    page_rank = True if int(input())==1 else False
+    print('لطفا کلیدواژه مربوط به عنوان را وارد کنید.')
+    title = input()
+    print('لطفا کلیدواژه مربوط به خلاصه را وارد کنید.')
+    preface = input()
+    print('لطفا کلیدواژه مربوط به متن را وارد کنید.')
+    body = input()
+    search('wiki-index',title_w,preface_w,body_w,cluster_id,page_rank,title,preface,body)
+    print('در صورت تمایل به دیدن محتوای صفحه آیدی آن را وارد کنید')
+    doc_id = input()
+    while doc_id!='':
+        es = Elasticsearch()
+        res = es.get(index="wiki-index", doc_type='doc', id=doc_id)['_source']
+        print(res['page'])
+        print(res['preface'])
+        print('در صورت تمایل به دیدن محتوای صفحه آیدی آن را وارد کنید')
+        doc_id = input()
+
     pass
 
 

@@ -48,6 +48,8 @@ class WikiSpider(scrapy.Spider):
         [s.extract() for s in main_content(['style', 'script', '[document]', 'head', 'title'])]
         wiki_item['body'] = main_content.get_text()
         wiki_item['links'] = []
+        wiki_item['page_rank'] = 0
+        wiki_item['cluster_id'] = 0
 
         anchors = [urllib.parse.unquote(a['href']) for a in main_content.find_all('a')]
         refs = [response.urljoin(a) for a in anchors]
