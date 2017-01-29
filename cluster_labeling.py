@@ -29,6 +29,11 @@ def mutual_info(term, docs, cluster):
 
 def make_docs_clusters(term_vectors, clusters):
     ans = []
+    print('0 ha', sum([1 if x == 0 else 0 for x in clusters]))
+    print('1 ha', sum([1 if x == 1 else 0 for x in clusters]))
+    print('2 ha', sum([1 if x == 2 else 0 for x in clusters]))
+    print('3 ha', sum([1 if x == 3 else 0 for x in clusters]))
+
     l = len(term_vectors.rows)
     for i in range(l):
         # ans.append({'cluster': clusters[term_vectors.index(tv)], 'term_vector': tv})
@@ -47,6 +52,7 @@ def choose_label(cluster_id, term_id, docs):
     pbar.close()
     # mu_infos = {term : mutual_info(id ,docs,cluster_id) for term , id in term_id.items()}
     mu_infos_sorted = sorted(mu_infos.items(), key=operator.itemgetter(1), reverse=True)
+    print([item[0] for item in mu_infos_sorted[:5]])
     return [item[0] for item in mu_infos_sorted[:5]]
 
 
@@ -57,7 +63,15 @@ def label_all(cluster_num, term_id, docs):
 def update_label_index(labels):
     es = Elasticsearch()
     for c_id, label in labels.items():
-        es.index(index='wiki-index', doc_type='cluster', body={'cluster_id': c_id, 'label': label})
+        s = Search(using=es, index='wiki-index', doc_type='cluster')
+        all_docs = s.scan()
+        for hit in all_docs:
+            try:
+                es.delete(index="wiki-index", doc_type='cluster', id=hit.meta.id)
+            except:
+                pass
+
+        es.index(index='wiki-index', doc_type='cluster', id=c_id, body={'cluster_id': c_id, 'label': label})
 
 
 def print_clusters():

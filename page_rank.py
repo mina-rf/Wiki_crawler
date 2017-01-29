@@ -81,6 +81,7 @@ def compute_and_update_pr(alpha, index, itr):
     pr = eigen_vector_power_method(matrix, itr, np.ones((matrix.shape[0], 1)))
     pr = page_rank(pr)
     add_page_rank_to_index(pr, url_id, index)
+    print('http://localhost:9200/' + 'wiki-index' + '/_search?pretty=true&size=100')
 
 # res = make_adjacency_matrix('wiki-index')
 # url_id = res['url_id']

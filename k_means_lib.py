@@ -6,7 +6,7 @@ from scipy import sparse
 from sklearn.cluster import KMeans
 from tqdm import tqdm
 
-from cluster_labeling import make_docs_clusters, label_all
+from cluster_labeling import make_docs_clusters, label_all , update_label_index
 from elastic_indexing import INDEX_NAME
 
 
@@ -15,7 +15,8 @@ def cluster(L):
     k, best_cluster = find_best_cluster(term_doc_matrix, L)
     docs = make_docs_clusters(term_doc_matrix, best_cluster.labels_)
     update_index_clusters(doc_id, best_cluster.labels_)
-    label_all(k, dic, docs)
+    ans = label_all(k, dic, docs)
+    update_label_index(ans)
     print('http://localhost:9200/' + INDEX_NAME + '/_search?pretty=true&size=100')
 
 

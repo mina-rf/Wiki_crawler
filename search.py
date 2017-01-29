@@ -34,12 +34,17 @@ def search(index, title_w, preface_w, body_w, cluster_id, page_rank, title, pref
 
     if page_rank:
         pr_res = [hit for hit in response]
-        max_score = max([hit.meta.score for hit in response])
-        pr_scores = [hit.meta.score*0.8 + 0.2*hit.page_rank*max_score for hit in response]
-        response = [x for (y,x) in sorted(zip(pr_scores,pr_res) , reverse=True)]
+        try:
+            max_score = max([hit.meta.score for hit in response])
+            max_pr = max([hit.page_rank for hit in response])
+        except:
+            max_score = 1
+            max_pr =1
+        pr_scores = [hit.meta.score * 0.5 / max_score + 0.5 * hit.page_rank /max_pr for hit in response]
+        response = [x for (y, x) in sorted(zip(pr_scores, pr_res), reverse=True)]
 
     for hit in response:
-        print('id : ', hit.meta.id, ', title :', hit.title)
+        print('id : ', hit.meta.id, ', title :', hit.title, hit.page_rank)
 
 # search('wiki-index', 3, 2, 1, 2, False, "سعدی", 'شیراز', 'ا')
 # Q('multi-match' , query = preface , fields=['preface'] , boost=preface_w)
