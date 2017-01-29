@@ -11,11 +11,11 @@ def mutual_info(term, docs, cluster):
     n = np.zeros((2, 2))
     for doc in docs:
         if doc['cluster'] == cluster:
-            if doc['term_vector'][term] != 0:
+            if doc['term_vector'][0, term] != 0:
                 n[1, 1] += 1
             else:
                 n[0, 1] += 1
-        elif doc['term_vector'][term]:
+        elif doc['term_vector'][0, term]:
             n[1, 0] += 1
         else:
             n[0, 0] += 1
@@ -29,8 +29,11 @@ def mutual_info(term, docs, cluster):
 
 def make_docs_clusters(term_vectors, clusters):
     ans = []
-    for tv in term_vectors:
-        ans.append({'cluster': clusters[term_vectors.index(tv)], 'term_vector': tv})
+    l = len(term_vectors.rows)
+    for i in range(l):
+        # ans.append({'cluster': clusters[term_vectors.index(tv)], 'term_vector': tv})
+        ans.append({'cluster': clusters[i], 'term_vector': term_vectors.getrow(i)})
+
     return ans
 
 

@@ -2,6 +2,7 @@ import math
 
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
+from scipy import sparse
 from sklearn.cluster import KMeans
 
 from cluster_labeling import make_docs_clusters, label_all
@@ -20,7 +21,7 @@ def cluster(L):
 def init():
     es = Elasticsearch()
 
-    s = Search(using=es, index='wiki-index', doc_type='doc')
+    s = Search(using=es, index=INDEX_NAME, doc_type='doc')
     response = s.scan()
     doc_ids = [hit.meta.id for hit in response]
     docs = {doc_id: get_term_vector(es, doc_id) for doc_id in doc_ids}
@@ -36,12 +37,14 @@ def init():
                 dictionary[term] = cnt
                 cnt += 1
 
-    term_doc_matrix = [[0 for _ in range(len(dictionary))] for _ in range(len(doc_ids))]
+    # TODO: Use sparce matrix
+    # term_doc_matrix = [[0 for _ in range(len(dictionary))] for _ in range(len(doc_ids))]
+    term_doc_matrix = sparse.lil_matrix((len(doc_ids), len(dictionary)))
     for doc_id, tv in docs.items():
         for term, freq in tv.items():
             term_idx = dictionary[term]
             doc_idx = d_map[doc_id]
-            term_doc_matrix[doc_idx][term_idx] = freq
+            term_doc_matrix[doc_idx, term_idx] = freq
 
     return dictionary, term_doc_matrix, doc_ids
 
@@ -68,7 +71,7 @@ def find_best_cluster(term_doc_matrix, L):
 
 
 def get_term_vector(es, doc_id):
-    tv_json = es.termvectors(index='wiki-index', doc_type='doc', id=doc_id, fields=['body'], term_statistics=True,
+    tv_json = es.termvectors(index=INDEX_NAME, doc_type='doc', id=doc_id, fields=['body'], term_statistics=True,
                              field_statistics=True, )
     term_vector = {term: info['term_freq']
                    for term, info in tv_json['term_vectors']['body']['terms'].items()}
