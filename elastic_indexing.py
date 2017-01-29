@@ -29,10 +29,11 @@ def delete_index(index):
     es.indices.delete(index=index, ignore=[400, 404])
 
 
-    # make_index('files')
-    #
-    # es = Elasticsearch()
-    # res = es.search(index="wiki-index", body={"query": {"match": {'title':'سعدی'}}})
-    # print("Got %d Hits:" % res['hits']['total'])
-    # for hit in res['hits']['hits']:
-    #     print("%(title)s %(title)s: %(page)s" % hit["_source"])
+
+make_index('files')
+
+es = Elasticsearch()
+res = es.search(index="wiki-index", body={"query": {"match": {'title':'سعدی'}}})
+print("Got %d Hits:" % res['hits']['total'])
+for hit in res['hits']['hits']:
+    print("%(title)s %(title)s: %(page)s" % hit["_source"])
