@@ -4,6 +4,7 @@ from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
 from scipy import sparse
 from sklearn.cluster import KMeans
+from tqdm import tqdm
 
 from cluster_labeling import make_docs_clusters, label_all
 from elastic_indexing import INDEX_NAME
@@ -39,8 +40,10 @@ def init():
 
     # TODO: Use sparce matrix
     # term_doc_matrix = [[0 for _ in range(len(dictionary))] for _ in range(len(doc_ids))]
+    pbar = tqdm(total=len(docs))
     term_doc_matrix = sparse.lil_matrix((len(doc_ids), len(dictionary)))
     for doc_id, tv in docs.items():
+        pbar.update(1)
         for term, freq in tv.items():
             term_idx = dictionary[term]
             doc_idx = d_map[doc_id]
@@ -54,7 +57,7 @@ def find_best_cluster(term_doc_matrix, L):
     prev_best_cluster = None
     if L == -1:
         L = math.inf
-    for k in range(1, L):  # TODO: input the limit
+    for k in range(1, L + 1):  # TODO: input the limit
         best_cluster = KMeans(n_clusters=k, random_state=0).fit(X=term_doc_matrix)
         for i in range(2):
             kmeans = KMeans(n_clusters=k, random_state=0).fit(X=term_doc_matrix)
@@ -68,6 +71,8 @@ def find_best_cluster(term_doc_matrix, L):
         # print('k', k, 'cost', cost + 500000 * k, 'delta', prev_cost - cost)
         prev_cost = cost
         prev_best_cluster = best_cluster
+    print('k بهینه', L)
+    return L, best_cluster
 
 
 def get_term_vector(es, doc_id):
