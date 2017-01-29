@@ -6,12 +6,12 @@ from bs4 import BeautifulSoup
 from scrapy.exceptions import CloseSpider
 from tqdm import tqdm
 
-from MIR_project3.items import WikiItem
+from MIR_project3.items import WikiItem, FlexibleItem
 
 
 def extract_infobox(info_box):
+    abstract = FlexibleItem()
     if info_box:
-        abstract = {}
         rows = info_box.find_all('tr')
         for row in rows:
             table_header = row.find('th')
@@ -19,7 +19,7 @@ def extract_infobox(info_box):
             if table_header:
                 if table_data:
                     if table_data[0].select_one('a') and table_data[0].select_one('a').select_one('img'):
-                        abstract[table_header.get_text()] = table_data[0].select_one('a').select_one('img')['src']
+                        abstract[table_header.get_text()] = str(table_data[0].select_one('a').select_one('img')['src'])
                     else:
                         abstract[table_header.get_text()] = table_data[0].get_text()
                 else:
@@ -28,12 +28,11 @@ def extract_infobox(info_box):
                 if len(table_data) > 1:
                     abstract[table_data[0].get_text()] = table_data[1].get_text()
                 elif table_data[0].select_one('a') and table_data[0].select_one('a').select_one('img'):
-                    abstract['image_url'] = table_data[0].select_one('a').select_one('img')['src']
+                    abstract['image_url'] = str(table_data[0].select_one('a').select_one('img')['src'])
                     abstract['image_description'] = table_data[0].get_text()
-        # for k, v in abstract.items():
-        #     print(k, ':', v)
-        return abstract
-    return {}
+                    # for k, v in abstract.items():
+                    #     print(k, ':', v)
+    return abstract
 
 
 class WikiSpider(scrapy.Spider):
@@ -70,7 +69,7 @@ class WikiSpider(scrapy.Spider):
         [s.extract() for s in main_content(['style', 'script', '[document]', 'head', 'title'])]
         wiki_item['body'] = main_content.get_text()
         wiki_item['links'] = []
-        wiki_item['abstract'] = extract_infobox(soup.select_one('table.infobox'))
+        wiki_item['abstract'] = dict(extract_infobox(soup.select_one('table.infobox')))
         wiki_item['page_rank'] = 0
         wiki_item['cluster_id'] = 0
 

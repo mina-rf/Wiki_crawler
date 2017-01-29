@@ -4,6 +4,7 @@
 #
 # See documentation in:
 # http://doc.scrapy.org/en/latest/topics/items.html
+from collections import defaultdict
 
 import scrapy
 
@@ -17,5 +18,13 @@ class WikiItem(scrapy.Item):
     page_rank = scrapy.Field()
     cluster_id = scrapy.Field()
     abstract = scrapy.Field()
+
     def __str__(self):
         return ''
+
+
+class FlexibleItem(scrapy.Item):
+    fields = defaultdict(scrapy.Field)
+
+    def __setitem__(self, key, value):
+        self._values[key] = value

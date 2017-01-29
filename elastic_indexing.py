@@ -26,14 +26,15 @@ def make_index(index_dir):
         bar.update(1)
         with open(file) as data_file:
             body = json.load(data_file)
-            # es.index(index=INDEX_NAME, doc_type='doc', body=body)
             try:
                 es.index(index=INDEX_NAME, doc_type='doc', body=body)
             except:
-                # print(body['abstract'])
+                # print(body['page'])
+                # for k, v in body['abstract'].items():
+                #     print('key', k, 'val ', v)
                 pass
     print('http://localhost:9200/' + INDEX_NAME + '/_search?pretty=true&size=100')
-    es.index(index=INDEX_NAME, doc_type='cluster', id=0,body={'cluster_id': 0, 'label': 'همه'})
+    es.index(index=INDEX_NAME, doc_type='cluster', id=0, body={'cluster_id': 0, 'label': 'همه'})
 
 
 def get_docs_list(index_dir):

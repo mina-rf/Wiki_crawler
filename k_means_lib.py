@@ -6,7 +6,7 @@ from scipy import sparse
 from sklearn.cluster import KMeans
 from tqdm import tqdm
 
-from cluster_labeling import make_docs_clusters, label_all , update_label_index
+from cluster_labeling import make_docs_clusters, label_all, update_label_index
 from elastic_indexing import INDEX_NAME
 
 
@@ -39,8 +39,8 @@ def init():
                 dictionary[term] = cnt
                 cnt += 1
 
-    # TODO: Use sparce matrix
     # term_doc_matrix = [[0 for _ in range(len(dictionary))] for _ in range(len(doc_ids))]
+    print('constructing term-doc matrix')
     pbar = tqdm(total=len(docs))
     term_doc_matrix = sparse.lil_matrix((len(doc_ids), len(dictionary)))
     for doc_id, tv in docs.items():
@@ -49,6 +49,7 @@ def init():
             term_idx = dictionary[term]
             doc_idx = d_map[doc_id]
             term_doc_matrix[doc_idx, term_idx] = freq
+    pbar.close()
 
     return dictionary, term_doc_matrix, doc_ids
 
@@ -58,7 +59,7 @@ def find_best_cluster(term_doc_matrix, L):
     prev_best_cluster = None
     if L == -1:
         L = math.inf
-    for k in range(1, L + 1):  # TODO: input the limit
+    for k in range(1, L + 1):
         best_cluster = KMeans(n_clusters=k, random_state=0).fit(X=term_doc_matrix)
         for i in range(2):
             kmeans = KMeans(n_clusters=k, random_state=0).fit(X=term_doc_matrix)
