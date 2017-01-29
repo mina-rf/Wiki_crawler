@@ -16,6 +16,6 @@ class WikiItem(scrapy.Item):
     links = scrapy.Field()
     page_rank = scrapy.Field()
     cluster_id = scrapy.Field()
-
+    abstract = scrapy.Field()
     def __str__(self):
         return ''
