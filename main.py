@@ -5,6 +5,8 @@ from elasticsearch_dsl import Search, Q
 
 from MIR_project3.spiders import WikiSpider
 from search import search
+from page_rank import compute_and_update_pr
+from cluster_labeling import print_clusters
 
 
 # logging.getLogger('scrapy').propagate = False
@@ -65,7 +67,7 @@ def part3():
 def part4():
     print('لطفا آلفا مورد نظر برای محاسبه معیار page rank  را وارد کنید.')
     alpha = float(input())
-
+    compute_and_update_pr(alpha,'wiki-index',5)
     pass
 
 
@@ -77,8 +79,9 @@ def part5():
     print('لطفا وزن مربوط به متن را وارد کنید.')
     body_w = int(input())
     print('لطفا در صورت تمایل به جستجو در بین خوشه مشخص شماره خوشه را وارد نمایید و در غیر این صورت عدد -۱ را وارد نمایید')
-    for i , label in cluster_label.items():
-        print( i , ':' , label)
+    # for i , label in cluster_label.items():
+    #     print( i , ':' , label)
+    print_clusters()
     cluster_id = int(input())
     print(' آیا تمایل به استفاده از معیار page rank دارید؟ ۱- بله ۲-خیر')
     page_rank = True if int(input())==1 else False

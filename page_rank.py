@@ -3,19 +3,20 @@ from elasticsearch import Elasticsearch
 from scipy import sparse
 from sklearn.preprocessing import normalize
 from elasticsearch_dsl import Search
+from tqdm import trange , tqdm
 
 
 def make_adjacency_matrix(index):
     es = Elasticsearch()
-    # all_docs = es.search(index=index, body={"query": {"match_all": {}}})
-    s = Search(using=es, index='wiki-index', doc_type='doc')
+    s = Search(using=es, index=index, doc_type='doc')
     all_docs = s.scan()
     url_id = {}
     matrix = sparse.csr_matrix(np.zeros((0, 0)))
-    for hit in all_docs:
-
+    all_docs = [hit for hit in all_docs]
+    print('making adjacency matrix:')
+    for i in trange(len(all_docs)):
+        hit = all_docs[i]
         page = hit['page']
-        # print(page)
         if page not in url_id:
             url_id[page] = {'id' : len(url_id) , 'doc_id' : hit.meta.id}
             matrix = sparse.csr_matrix((matrix.data, matrix.indices, matrix.indptr),
@@ -32,19 +33,19 @@ def make_adjacency_matrix(index):
             matrix[url_id[page]['id'], url_id[link]['id']] = 1
 
     normalize(matrix, norm='l1', axis=1, copy=False)
-    return {'matrix': matrix, 'url_id': url_id}
+    return matrix, url_id
 
 
 def add_teleporting(p, alpha):
     n = p.shape[0]
     v = np.full((n, n,), 1 / n)
     ans = (1 - alpha) * p + alpha * v
-    # print(ans)
     return ans.transpose()
 
 
 def eigen_vector_power_method(sa, n, eigen_vector):
-    for i in range(n):
+    print('computing eigen vector:')
+    for i in trange(n):
         eigen_vector = sa.dot(eigen_vector)
         eigen_vector /= max(eigen_vector)
     return eigen_vector
@@ -55,14 +56,22 @@ def page_rank(eigen_vector):
 
 
 def add_page_rank_to_index(pr_matrix, url_id, index):
+    print('updating index:')
     es = Elasticsearch()
-    count = 0
+    pbar = tqdm(total=len(url_id))
     for url, id in url_id.items():
+        pbar.update(1)
         if id['doc_id']!=0 :
-            print(url, pr_matrix[id['id'], 0])
             es.update(index=index, doc_type='doc', id=id['doc_id'], body={'doc': {'page_rank': pr_matrix[id['id'], 0]}})
+    pbar.close()
 
 
+def compute_and_update_pr(alpha , index , itr):
+    matrix , url_id = make_adjacency_matrix(index)
+    matrix = add_teleporting(matrix , alpha)
+    pr =eigen_vector_power_method(matrix,itr, np.ones((matrix.shape[0],1)))
+    pr = page_rank(pr)
+    add_page_rank_to_index(pr,url_id,index)
 
 
 
